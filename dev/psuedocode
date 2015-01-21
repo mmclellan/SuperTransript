@@ -1,0 +1,56 @@
+
+#### Psuedo code outline for project ####
+
+### Initialise stuff ###
+
+1. Initialise empty hash table
+
+### Parse PSL output file ###
+
+1.	load file for parsing 
+		Split file with each query
+		Remove redundant queries - reverse queries 
+		Determine aligned sequence blocks
+			Find block sizes, 
+			Find block start sites, 
+			Add unique sequences to hash table. Sequence is key. 
+		Determine Gaps 
+			Find gap length
+			or
+			Add all gaps between blocks, 
+				if no gap, nothing is added
+				if gap present, add gap to table
+		Determine sequence that do not align
+			Add unique sequence to table
+
+Each node or piece of unique sequence will be in hash table; that way only need to add unique sequence once, then construct graph from hash table. Essentially an adjacency list. Might not be so simple to break up graph and find all unique sequences and make nodes out of them. Need to find some way to break up the transcript into blocks.
+
+### Build de bruijn graph ###
+
+1. 	For each index of table
+		Create node for key value
+			Create connecting edges for adjacent sequences
+2. 	Visualise graph for reference
+
+### Traverse graph ### Look at caffman-graham algorithm to deal with cases where cycle is present in graph. think about cases where cycle might happen. Usual complexity is O(|V|+|E|)
+
+Algorithm can be rewritten to interact directly with the adjacency table. No need to work off the graph directly. 
+
+n <- nodes in the graph
+L <- Empty list that will contain the sorted sequences
+S <- Set of all nodes with no incoming edges
+
+1. 	Find nodes with no incoming edges add to S (can optimise this step to not require)
+2.	While S is non-empty do:
+		remove a node from S
+		add node to tail of L
+		for reach node m with an edge from n to m do:
+			remove edge e from graph
+			if m has no other incoming edges then
+				insert m into S
+   	If graph has edges then
+   		return error (graph has at least on cycle)
+	else 
+		return L (topologically sorted sequence)
+
+
