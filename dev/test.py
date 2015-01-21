@@ -38,7 +38,7 @@ output = psl_parse('output_2.psl')
 
 # Retrieves the sequence data for the blocks determined by BLAT
 # Need to determine what to do with sequence data and how to store it and then
-# Translate it to a graph.
+# Translate it to a graph.asdfasdfasdfasdf
 def get_sequence(blat_blocks, fasta_file):
     output_records = []
     for seq_record in SeqIO.parse(fasta_file, "fasta"):
