@@ -22,8 +22,6 @@ def main():
         graph.vs[x] = ""
     graph.vs["Base"] = ""
 
-    print(graph.vs.attributes())
-
     output = psl_parse('output_3.psl') # Parse the blat file to retrieve genomic information about transcripts
     blat_blocks = get_sequence(output, "ESR1.fasta") # Retrieves sequences for genomic blocks
 
@@ -86,7 +84,8 @@ def get_transcript_ids(fasta):
 
     return transcript_ids
 
-
+# TODO Need to re-write khan algorithm to work with base focused graph instead of large blocks of sequence
+# - Depends on how I simplify and compact the graph
 # Topologically sorts a graph using the Khan algorithm
 # seems to work without worrying about deleting edges, simply takes care of itself? Sweet
 def khan_sort(graph):
@@ -225,21 +224,33 @@ def add_node_graph(base, list_transcripts, coordinate):
 
     global graph
 
-    # TODO need to check if nodes already exist
-    # search if base in transcript[0] with co-ordinate exists:
-    # if it does - do nothing
-    # if it doesn't - update node by adding co-ordinate for that transcript
-
+    # If this is the first base added to the graph add the node
     if len(graph.vs()) == 0:
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
-    else:
 
-        _base = graph.vs.select(Base=base)
+    # TODO need to check if nodes already exist
+    # - search if base in transcript[0] with co-ordinate exists:
+    # - if it does - do nothing
+    # - if it doesn't - update node by adding co-ordinate for that transcript
 
-        for x in _base:
-            print(x)
+    base_exist = []
+    [base_exist.append(False) for t in list_transcripts]
 
+    # TODO find a more efficient way to do this, this is going to get out of hand when working on larger data sets
+    # Sub Graph of main graph containing all the bases of one currently needing to be added
+    base_sub_graph = graph.vs.select(Base=base)
+
+    for v in graph.vs.select(Base=base):
+        for t, trans in enumerate(list_transcripts):
+            if v.__getitem__(list_transcripts[t]) == coordinate[t]:
+                base_exist[t] = True
+
+    # No transcripts and co-ordinates in there, so add new node
+    # May need to re-arrange the logic in adding new nodes - but think its good here
+    if True not in base_exist:
+
+        # Adding new nodes to graph
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
         graph.add_edge(len(graph.vs())-2, len(graph.vs())-1)
@@ -247,47 +258,46 @@ def add_node_graph(base, list_transcripts, coordinate):
         for z, ba in enumerate(list_transcripts):
             graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
 
+    else:
 
-def base_node_construction(blocks):
+        # TODO Fix this method of checking if nodes exist
+        # - If one of the transcripts returns true then do not add new nodes
+        # - Update the existing node with the new transcripts
+        # - Fix, so that if base_exist is completely try do not add at all.
 
-    print(">> Adding nodes to graph... ")
+        if True and False in base_exist:
+            # get index that gave true
+            true_indices = [i for i, x in enumerate(base_exist) if x is True]
 
-    block = blocks[0]
+            # Get index that are false
+            false_indices = [i for i, x in enumerate(base_exist) if x is False]
 
-    g = Graph(directed=True)
-    g.vs["base"] = ''
+            for x in true_indices:
+                # gets vertex from sub graph and checks that the node exists
+                for vertex in base_sub_graph:
+                    if vertex.__getitem__(list_transcripts[x]) == coordinate[x]:
+                        # Updates the truth node with the nodes that are not in the graph
+                        for j in false_indices:
+                            vertex[list_transcripts[j]] = coordinate[j]
 
-    for i, base in enumerate(block.seq):
-        # If first base added only add single base and no edges
-        if len(g.vs()) == 0:
-            g.add_vertex(base)
-            g.vs[len(g.vs())-1]["base"] = base
-            g.vs[len(g.vs())-1][block.id] = i+1
-
-        else:
-            g.add_vertex(base)
-            g.vs[len(g.vs())-1]["base"] = base
-            g.vs[len(g.vs())-1][block.id] = i+1
-            g.add_edge(g.vs[len(g.vs)-2], g.vs[len(g.vs)-1])
-
-    for v in g.vs():
-        print(v)
-
-    # g.write_svg("ESR1.svg", layout="lgl", width=1200, height=1200, labels=None, vertex_size=1)
+# TODO Need to write how to add edges
+# - Adding edges between two most recent nodes
+# - Look at if working with a different transcript? Not sure
 
 
-# Draws graph to .svg file
-def draw_svg_graph(graph):
+def check_base_in_graph(base, transcripts, coords):
 
-    visual_style = {}
-    visual_style["vertex_size"] = 10
-    visual_style["bbox"] = (800, 800)
-    visual_style["vertex_shape"] = "rectangle"
+    global graph
 
-    plot(graph, **visual_style)
+    for x in graph.vs.select(Base=base):
+        if x.__getitem__(transcripts[0]) == coords[0]:
+            print("Item is in the graph")
 
-    # graph.write_svg("ESR1.svg", layout = "lgl", width=800, height=800)
-
+# TODO Implement graph simplification
+# - Compress nodes
 
 if __name__ == "__main__":
     main()
+
+
+
