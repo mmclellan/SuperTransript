@@ -1,6 +1,8 @@
 from igraph import *
 from Bio import SeqIO
 import re
+import time
+
 
 # Main function for working
 def main():
@@ -9,69 +11,58 @@ def main():
     fasta_filename = "ESR1.fasta"
 
     print('\nSuper transcript magic algorith!... \n')
-
     print("\n>> Retrieving transcript IDs...")
     transcripts = get_transcript_ids(fasta_filename)
 
-    print("\n>> Constructing empty graph structure... ")
+    print("\n>> Constructing empty graph structure and hash table... ")
     global graph
     graph = Graph(directed=True)
+
+    global transcript_hash_table
+    transcript_hash_table = {}
 
     # Sets graph attributes, so each node has an empty hash table with transcript as key
     for x in transcripts:
         graph.vs[x] = ""
+        transcript_hash_table[x] = []
     graph.vs["Base"] = ""
 
-    output = psl_parse('output_3.psl') # Parse the blat file to retrieve genomic information about transcripts
-    blat_blocks = get_sequence(output, "ESR1.fasta") # Retrieves sequences for genomic blocks
+    # Get the block co-ordinates from BLAT output
+    output = psl_parse('output_2.psl')
 
+    # Gets the sequence from fasta file. Also adds the nodes to the graph as sequences are retrieved
+    blat_blocks = get_sequence(output, "ESR1.fasta")
+
+    # Simplify graph conactenating nodes that do not fork
+    print("Simplifying graph")
+    simplify_graph(graph)
+
+    # Graph summary
     print(graph.summary())
 
+    # Sorts graph using khan algorithm
+    sorted_sequence = khan_sort(graph)
+
+    # Write graph information to text file for checking
     f = open('graph_output.txt', 'w')
     for vertex in graph.vs():
         f.write(str(vertex))
         f.write("\n")
+    f.write("\n")
+    for key in transcript_hash_table.keys():
+        f.write(key)
+        f.write(" : ")
+        for i in transcript_hash_table[key]:
+            f.write(str(i))
+            f.write(" ")
+        f.write("\n")
+
+    f.write("sorted sequecne \n")
+    f.write(sorted_sequence)
     f.close()
 
-    # Constructs a graph using hard coded edges and nodes for ESR1 gene and sorts it
-    # graph = construct_graph()
-    # draw_svg_graph(graph)
-    # print(khan_sort(graph))
-
-
-# Constructs graph object with nodes being unique blocks
-# Uses igraph to handle objects
-def construct_graph_hardCode():
-
-    print(">> Constructing graph....")
-
-    # Hard coded graph for sorting algorithm
-    g = Graph(directed=True)
-
-    n = 12
-    i = 0
-    while i != 12:
-        g.add_vertex(name=i, sequence="abcd")
-        i += 1
-
-    g.add_edge(0, 1)
-    g.add_edge(1, 3)
-    g.add_edge(2, 3)
-    g.add_edge(3, 4)
-    g.add_edge(3, 8)
-    g.add_edge(4, 5)
-    g.add_edge(5, 6)
-    g.add_edge(5, 7)
-    g.add_edge(6, 7)
-    g.add_edge(7, 8)
-    g.add_edge(8, 9)
-    g.add_edge(9, 10)
-    g.add_edge(10, 11)
-
-    # g.write_svg("ESR1.svg", layout = "drl")
-
-    return g
-
+    # Write graph structure to SVG file
+    graph.write_svg("small_graph.svg", layout="kk")
 
 # Method to retrieve list of transcript IDs from a fasta
 def get_transcript_ids(fasta):
@@ -83,6 +74,7 @@ def get_transcript_ids(fasta):
         transcript_ids.append(seq_record.id)
 
     return transcript_ids
+
 
 # TODO Need to re-write khan algorithm to work with base focused graph instead of large blocks of sequence
 # - Depends on how I simplify and compact the graph
@@ -100,16 +92,20 @@ def khan_sort(graph):
     sorted_sequence = ''
 
     while num_nodes > 0:
+
         # Find nodes with no incoming edges - add them to L
+
         for x in node_list:
+
             if x.degree(type="in") == 0:
-                # print("Node with no incoming edges name:  ", x.__getitem__("name"))
-                L.append(x.__getitem__("name"))
-                sorted_sequence += x.__getitem__("sequence")
+
+                sorted_sequence += x.__getitem__("Base")
                 graph.delete_vertices(x)
                 num_nodes -= 1
+
     print(">> Graph sorted, returning ordered nodes....")
-    return L
+
+    return sorted_sequence
 
 
 # Takes blat .psl file and returns the genomic co-ordinates for the blocks determined by BLAT
@@ -221,83 +217,154 @@ def write_fasta(list_records, filename):
 
 # Method for adding nodes to the graph; updates graph nodes
 def add_node_graph(base, list_transcripts, coordinate):
-
     global graph
+    global transcript_hash_table
 
+    # print(list_transcripts)
+
+    # Checks if this is the first base being added to the graph
     # If this is the first base added to the graph add the node
     if len(graph.vs()) == 0:
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
 
-    # TODO need to check if nodes already exist
-    # - search if base in transcript[0] with co-ordinate exists:
-    # - if it does - do nothing
-    # - if it doesn't - update node by adding co-ordinate for that transcript
+        for z, ba in enumerate(list_transcripts):
+            graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
+            # Added transcript coordinates to hash table
+            transcript_hash_table[list_transcripts[z]].append(coordinate[z])
 
+    # Creates list of booleans for evaluating if transcript co-ordinates exist in the graph
     base_exist = []
     [base_exist.append(False) for t in list_transcripts]
 
-    # TODO find a more efficient way to do this, this is going to get out of hand when working on larger data sets
+    '''
+    # TODO Sub graph method - keeping just in case decide but hash table is much faster
     # Sub Graph of main graph containing all the bases of one currently needing to be added
     base_sub_graph = graph.vs.select(Base=base)
-
+    # Updates base_exist list with True at same index of transcripts if they exist in graph
     for v in graph.vs.select(Base=base):
         for t, trans in enumerate(list_transcripts):
             if v.__getitem__(list_transcripts[t]) == coordinate[t]:
                 base_exist[t] = True
+    '''
 
-    # No transcripts and co-ordinates in there, so add new node
+    for t, trans in enumerate(list_transcripts):
+        list_coords = transcript_hash_table[trans]
+        if coordinate[t] in list_coords:
+            base_exist[t] = True
+
+    # No transcripts and co-ordinates in there, so add new node - base_exist is still all false
     # May need to re-arrange the logic in adding new nodes - but think its good here
     if True not in base_exist:
-
         # Adding new nodes to graph
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
-        graph.add_edge(len(graph.vs())-2, len(graph.vs())-1)
+        # graph.add_edge(len(graph.vs())-2, len(graph.vs())-1)
 
         for z, ba in enumerate(list_transcripts):
             graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
 
-    else:
+            # Added transcript coordinates to hash table
+            transcript_hash_table[list_transcripts[z]].append(coordinate[z])
 
-        # TODO Fix this method of checking if nodes exist
-        # - If one of the transcripts returns true then do not add new nodes
-        # - Update the existing node with the new transcripts
-        # - Fix, so that if base_exist is completely try do not add at all.
+    # - If one of the transcripts returns true then do not add new nodes
+    # - Update the existing node with the new transcripts
+    elif True and False in base_exist:
+        true_indices = [i for i, x in enumerate(base_exist) if x is True]
+        false_indices = [i for i, x in enumerate(base_exist) if x is False]
 
-        if True and False in base_exist:
-            # get index that gave true
-            true_indices = [i for i, x in enumerate(base_exist) if x is True]
+        # Updates true index transcripts at nodes with false index coordinates
+        for vertex in graph.vs.select(Base=base):
+            for t in true_indices:
+                if vertex[list_transcripts[t]] == coordinate[t]:
+                    for j in false_indices:
+                        vertex[list_transcripts[j]] = coordinate[j]
+                        transcript_hash_table[list_transcripts[j]].append(coordinate[j])
 
-            # Get index that are false
-            false_indices = [i for i, x in enumerate(base_exist) if x is False]
-
-            for x in true_indices:
-                # gets vertex from sub graph and checks that the node exists
-                for vertex in base_sub_graph:
-                    if vertex.__getitem__(list_transcripts[x]) == coordinate[x]:
-                        # Updates the truth node with the nodes that are not in the graph
-                        for j in false_indices:
-                            vertex[list_transcripts[j]] = coordinate[j]
-
-# TODO Need to write how to add edges
-# - Adding edges between two most recent nodes
-# - Look at if working with a different transcript? Not sure
+    # # Add edges for each transcript currently not working,
+    # for g, transc in enumerate(list_transcripts):
+    #     add_edge(base, transc, coordinate[g])
 
 
-def check_base_in_graph(base, transcripts, coords):
+# TODO look at re-write so that it only runs through the graph once,
+# - So look through list of transcripts - add edges the currenty way but do only need to iterate through the graph once
+# Add an edge between most recently added edges in the one transcript - current method implemented
+# OR
+# After nodes are added - iterate through graph along each transcript sequence and co-ordinates added edges,
+# if edge exist between nodes already then no need to add them and can simplify that node?
+def add_edge(base, transcript, coordinate):
 
     global graph
 
-    for x in graph.vs.select(Base=base):
-        if x.__getitem__(transcripts[0]) == coords[0]:
-            print("Item is in the graph")
+    # Don't work very fast - very slow
+    # TODO re write add_edge method very slow - need to implement a method to make this faster
+
+    if coordinate > 0:
+
+        for vertex in graph.vs():
+
+            if vertex[transcript] == (coordinate-1):
+                node_a = vertex
+            if vertex[transcript] == coordinate:
+                node_b = vertex
+
+        try:
+            if len(graph.es.select(_within=[node_a.index, node_b.index])) == 0:
+                graph.add_edge(node_a, node_b)
+
+        except UnboundLocalError:
+            print("Didn't find nodes or something")
+
+        simplify_graph(graph)
+
 
 # TODO Implement graph simplification
-# - Compress nodes
+# - Travel along each edge, and check the number of in and out degrees
+# - If both are 1, then compress the nodes to 1, and change the base value to A+B
+# - Coordinates will be the smaller value, can find the co-ordinates by the length of
+#   the bases and the starting point of the node
+def simplify_graph(graph):
+
+    i = 0
+
+    while i != len(graph.vs()):
+        print("Lenght of graph : ", len(graph.vs()))
+        print("i : ", i)
+
+    # for each node in the graph
+    # for vertex in graph.vs():
+
+        vertex = graph.vs()[i]
+
+        # vertex out degree is int but vertex indegree is list - because neighbour is of vertexseq object
+        if vertex.outdegree() == 1:
+            neighbor_id = graph.neighbors(vertex, mode="out")
+            neighbor = graph.vs()[neighbor_id[0]]
+
+            # there should on be one value in the list
+            if neighbor.indegree() == 1:
+
+                v_base = vertex["Base"]
+                n_base = neighbor["Base"]
+                new_base = v_base + n_base
+                vertex["Base"] = new_base
+
+                # Edges are added from vertex to its new neighbours
+                for index in graph.neighbors(neighbor_id[0], mode="out"):
+                    graph.add_edge(vertex, graph.vs()[index])
+
+                # Neighbour vertex is deleted from the graph
+                graph.delete_vertices(neighbor_id)
+                print("deleted a node")
+            else:
+                i += 1
+        else:
+            i += 1
+
 
 if __name__ == "__main__":
+    start_time = time.clock()
     main()
-
+    print("Running time: ", time.clock()-start_time, "s")
 
 
