@@ -31,7 +31,22 @@ def main():
     output = psl_parse('output_2.psl')
 
     # Gets the sequence from fasta file. Also adds the nodes to the graph as sequences are retrieved
-    blat_blocks = get_sequence(output, "ESR1.fasta")
+    get_sequence(output, "ESR1.fasta")
+
+    # Hash table containing the length of transcripts
+
+    transcript_lengths = {}
+    for out in output:
+        transcript_lengths[out[0]] = out[1]
+
+    add_edge_entire_graph(transcript_lengths)
+
+    print(graph.summary())
+
+    graph.simplify()
+
+    print(graph.summary())
+
 
     # Simplify graph conactenating nodes that do not fork
     print("Simplifying graph")
@@ -41,8 +56,9 @@ def main():
     print(graph.summary())
 
     # Sorts graph using khan algorithm
-    sorted_sequence = khan_sort(graph)
+    # sorted_sequence = khan_sort(graph)
 
+    '''
     # Write graph information to text file for checking
     f = open('graph_output.txt', 'w')
     for vertex in graph.vs():
@@ -57,12 +73,17 @@ def main():
             f.write(" ")
         f.write("\n")
 
-    f.write("sorted sequecne \n")
+
+    f.write("sorted sequence \n")
     f.write(sorted_sequence)
     f.close()
 
+    SeqIO.write(sorted_sequence, "sorted.fasta", 'fasta')
+
     # Write graph structure to SVG file
     graph.write_svg("small_graph.svg", layout="kk")
+    '''
+
 
 # Method to retrieve list of transcript IDs from a fasta
 def get_transcript_ids(fasta):
@@ -76,10 +97,8 @@ def get_transcript_ids(fasta):
     return transcript_ids
 
 
-# TODO Need to re-write khan algorithm to work with base focused graph instead of large blocks of sequence
-# - Depends on how I simplify and compact the graph
 # Topologically sorts a graph using the Khan algorithm
-# seems to work without worrying about deleting edges, simply takes care of itself? Sweet
+# seems to work without worrying about deleting edges, looks to take care of its self
 def khan_sort(graph):
 
     print(">> Sorting graph using khan algorithm....")
@@ -87,13 +106,9 @@ def khan_sort(graph):
     node_list = graph.vs()
     num_nodes = len(graph.vs())
 
-    S = [] # List for storing final sorted elements
-    L = [] # list for storing nodes with no incoming edges # seems to work only using L
     sorted_sequence = ''
 
     while num_nodes > 0:
-
-        # Find nodes with no incoming edges - add them to L
 
         for x in node_list:
 
@@ -188,7 +203,7 @@ def get_sequence(blat_blocks, fasta_file):
                             print("Added block: ", target_id, " ", 0, "-", target_block_start)
                             first_base = False
 
-                         # add basses from qstart and tstart length of block size
+                        # add basses from qstart and tstart to the length of block size
                         for b, base in enumerate(seq_record[query_block_start:query_block_end]):
                             add_node_graph(base, [query_id, target_id], [query_block_start+b, target_block_start+b])
                         print("Added block: ", query_id, " ", query_block_start, "-", query_block_end)
@@ -205,6 +220,8 @@ def get_sequence(blat_blocks, fasta_file):
                                 add_node_graph(base, [target_id], [(target_block_end+b)])
                             print("Added block: ", target_id, " ", target_block_end, "-", target_length)
 
+                    # add some edges here maybe? While I have the transcript length tha
+
     print(">> Returning block sequence....\n")
     return output_records
 
@@ -217,6 +234,7 @@ def write_fasta(list_records, filename):
 
 # Method for adding nodes to the graph; updates graph nodes
 def add_node_graph(base, list_transcripts, coordinate):
+
     global graph
     global transcript_hash_table
 
@@ -236,17 +254,6 @@ def add_node_graph(base, list_transcripts, coordinate):
     # Creates list of booleans for evaluating if transcript co-ordinates exist in the graph
     base_exist = []
     [base_exist.append(False) for t in list_transcripts]
-
-    '''
-    # TODO Sub graph method - keeping just in case decide but hash table is much faster
-    # Sub Graph of main graph containing all the bases of one currently needing to be added
-    base_sub_graph = graph.vs.select(Base=base)
-    # Updates base_exist list with True at same index of transcripts if they exist in graph
-    for v in graph.vs.select(Base=base):
-        for t, trans in enumerate(list_transcripts):
-            if v.__getitem__(list_transcripts[t]) == coordinate[t]:
-                base_exist[t] = True
-    '''
 
     for t, trans in enumerate(list_transcripts):
         list_coords = transcript_hash_table[trans]
@@ -281,9 +288,10 @@ def add_node_graph(base, list_transcripts, coordinate):
                         vertex[list_transcripts[j]] = coordinate[j]
                         transcript_hash_table[list_transcripts[j]].append(coordinate[j])
 
-    # # Add edges for each transcript currently not working,
+    #TODO Probably not necessary here any more
+    # Add edges for each transcript currently not working,
     # for g, transc in enumerate(list_transcripts):
-    #     add_edge(base, transc, coordinate[g])
+    #     add_edge(transc, coordinate[g])
 
 
 # TODO look at re-write so that it only runs through the graph once,
@@ -292,12 +300,21 @@ def add_node_graph(base, list_transcripts, coordinate):
 # OR
 # After nodes are added - iterate through graph along each transcript sequence and co-ordinates added edges,
 # if edge exist between nodes already then no need to add them and can simplify that node?
-def add_edge(base, transcript, coordinate):
+# - In theory every transcript co-ordinate is in the graph
+# - So can just run down the graph adding nodes without searching if they exist? Only need to run through the graph
+def add_edge(transcript, coordinate):
 
     global graph
 
-    # Don't work very fast - very slow
-    # TODO re write add_edge method very slow - need to implement a method to make this faster
+    # pass through transcript length and transcript stopping coordinate
+    # Use counter i or something and set it to the length of
+    # While i is greater then 0
+        # count back from i to 0
+        # add edge from coordinate i to i-1, then i -= 1
+
+
+    # search graph and add ids to list
+        # iterate through the list of vertex indexes and add nodes between them?
 
     if coordinate > 0:
 
@@ -313,23 +330,48 @@ def add_edge(base, transcript, coordinate):
                 graph.add_edge(node_a, node_b)
 
         except UnboundLocalError:
-            print("Didn't find nodes or something")
-
-        simplify_graph(graph)
+            print("Did not find node")
 
 
-# TODO Implement graph simplification
-# - Travel along each edge, and check the number of in and out degrees
-# - If both are 1, then compress the nodes to 1, and change the base value to A+B
-# - Coordinates will be the smaller value, can find the co-ordinates by the length of
-#   the bases and the starting point of the node
+def add_edge_entire_graph(dict_lengths):
+
+    print(">>> Adding edges...")
+
+    global graph
+
+    # Creates a dictionary to contain the index information for each transcript
+    # Each value for the dictionary will be a list of vertex indexes from the graph, the index in the list will be the
+    # coordinate of the base and the value stored will be the index of the graph it is stored in
+    edge_index = {}
+
+    for tran in dict_lengths:
+        length = int(dict_lengths[tran])
+        edge_index[tran] = [None] * length
+
+    for vertex in graph.vs():
+
+        for trans in dict_lengths:
+
+            if vertex.__getitem__(trans) is not None:
+                edge_index[trans][vertex.__getitem__(trans)] = vertex.index
+
+    for edge in edge_index:
+        list = edge_index[edge]
+        length = len(edge_index[edge])
+        i = length
+        while i > 0:
+            graph.add_edge(list[i-2], list[i-1])
+            i -= 1
+
+
+# Simplifies the graph by compacting nodes that have only one in degree and one out degree
 def simplify_graph(graph):
+
+    print(">>> Compacting graph...")
 
     i = 0
 
     while i != len(graph.vs()):
-        print("Lenght of graph : ", len(graph.vs()))
-        print("i : ", i)
 
     # for each node in the graph
     # for vertex in graph.vs():
@@ -355,7 +397,6 @@ def simplify_graph(graph):
 
                 # Neighbour vertex is deleted from the graph
                 graph.delete_vertices(neighbor_id)
-                print("deleted a node")
             else:
                 i += 1
         else:
@@ -366,5 +407,10 @@ if __name__ == "__main__":
     start_time = time.clock()
     main()
     print("Running time: ", time.clock()-start_time, "s")
+
+
+
+
+
 
 
