@@ -3,10 +3,9 @@ __author__ = 'michaelmclellan'
 from Bio import *
 from Bio import SeqIO
 
-fasta = "sorted.fasta"
+fasta = "ESR1_reconstructed_transcripts.fasta"
 
 for seq_record in SeqIO.parse(fasta, "fasta"):
-    seq = seq_record.seq
 
-print(seq[0:292])
-print(seq[1571:1571+292])
+    print(seq_record.id)
+    print(len(seq_record.seq))

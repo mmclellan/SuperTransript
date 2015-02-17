@@ -4,9 +4,12 @@ from Bio.Seq import Seq
 from Bio.SeqRecord import  SeqRecord
 import re
 import time
+import bisect
 
-from collections import deque
-
+## TO-DO LIST ##
+# TODO - Look at validation method, once graph is sorted,
+# - check each node that the adjacent nodes transcript co-ordinate is not lower then its parent
+# TODO - Retrieve transcript sequences from graph, make sure the graph is correctly holding data
 
 # Main function for working
 def main():
@@ -54,16 +57,18 @@ def main():
     print(graph.summary())
 
     # Simplify graph conactenating nodes that do not fork
-    simplify_graph(graph)
+    # simplify_graph(graph)
 
     # print(">>> Drawing graph... ")
     # graph.write_svg("graph.svg", layout="kk")
 
-    # Graph summary
-    print(graph.summary())
-
     # Writing out each node sequence for blatting
     # write_vertex_to_fasta(graph)
+
+    # Reconstruct transcripts
+    reconstruct_transcript_sequence(graph, transcripts)
+
+
 
     # Sorts graph using khan algorithm
     sorted = khan_sort(graph)
@@ -75,25 +80,15 @@ def main():
     SeqIO.write(sorted_seq_rec, "ESR1_sorted.fasta", 'fasta')
 
 
-    '''
+
     # Write graph information to text file for checking
     f = open('graph_output.txt', 'w')
     for vertex in graph.vs():
         f.write(str(vertex))
         f.write("\n")
     f.write("\n")
-    for key in transcript_hash_table.keys():
-        f.write(key)
-        f.write(" : ")
-        for i in transcript_hash_table[key]:
-            f.write(str(i))
-            f.write(" ")
-        f.write("\n")
-
-    f.write("sorted sequence \n")
-    f.write(sorted_sequence)
     f.close()
-    '''
+
 
 # Method to retrieve list of transcript IDs from a fasta
 def get_transcript_ids(fasta):
@@ -107,9 +102,10 @@ def get_transcript_ids(fasta):
     return transcript_ids
 
 
-#TODO BUG - Think there is a bug here adding multiple nodes to the output
+# TODO - Method, so that when choosing a new no incoming node, checks that has a larger coordinate,
+# - Use the genomic coordinates to help the sorting progress, to get the correct order
+
 # Topologically sorts a graph using the Khan algorithm
-# seems to work without worrying about deleting edges, looks to take care of its self
 def khan_sort(graph):
 
     print(">> Sorting graph using khan algorithm....")
@@ -132,15 +128,14 @@ def khan_sort(graph):
 
     while len(graph.vs()) > 0:
 
+        # If length of graph is 1, then simply append the final node to the list
         if len(graph.vs()) == 1:
             L.append(graph.vs()[0].__getitem__("Base"))
             break
 
-        print("The length of graph: ", len(graph.vs))
-
         for x in graph.vs():
                 if x.degree(mode="IN") == 0:
-                    print("Vertex \n", x, " has no incoming edges")
+                    # print("Vertex \n", x, " has no incoming edges")
                     S.append(x)
 
                     for s in S:
@@ -150,21 +145,15 @@ def khan_sort(graph):
 
                         for j in neighbours:
                             graph.delete_edges(graph.get_eid(s.index, j))
-                            print("Delete edge: ", s.index, j)
 
                         L.append(s.__getitem__("Base"))
                         S.remove(s)
 
-                        print("Delete vertex: ", s.index)
                         graph.delete_vertices(s.index)
+                        print("deleted vertex:")
 
                     break  # break out of for loop and start through the graph from scratch
 
-                else:
-                    print("Cycle must be present")
-
-    print(len(L))
-    print(L)
 
     for l in L:
         sorted_sequence += l
@@ -350,25 +339,22 @@ def add_node_graph(given_base, list_transcripts, coordinate):
     global graph
     global transcript_hash_table
 
-    # print("adding node.. ")
-
-
     # Checks if this is the first base being added to the graph
     # If this is the first base added to the graph add the node
     if len(graph.vs()) == 0:
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
 
-        # print("Creating first node for the graph... ")
-
         for z, ba in enumerate(list_transcripts):
             graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
+
             # Added transcript coordinates to hash table
             transcript_hash_table[list_transcripts[z]].append(coordinate[z])
 
     # Creates list of booleans for evaluating if transcript co-ordinates exist in the graph
     base_exist = []
-    [base_exist.append(False) for t in list_transcripts]
+    base_exist = [False] * len(list_transcripts)
+    # [base_exist.append(False) for t in list_transcripts]
 
     for t, trans in enumerate(list_transcripts):
         list_coords = transcript_hash_table[trans]
@@ -377,7 +363,7 @@ def add_node_graph(given_base, list_transcripts, coordinate):
 
     # No transcripts and co-ordinates in there, so add new node - base_exist is still all false
     # May need to re-arrange the logic in adding new nodes - but think its good here
-    if True not in base_exist:
+    if True not in base_exist:  #
         # Adding new nodes to graph
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
@@ -390,8 +376,8 @@ def add_node_graph(given_base, list_transcripts, coordinate):
             # Added transcript coordinates to hash table
             transcript_hash_table[list_transcripts[z]].append(coordinate[z])
 
-    # - If one of the transcripts returns true then do not add new nodes
-    # - Update the existing node with the new transcripts
+    # If one of the transcripts returns true then do not add new nodes
+    # Update the existing node with the new transcripts
     elif True and False in base_exist:
         true_indices = [i for i, x in enumerate(base_exist) if x is True]
         false_indices = [i for i, x in enumerate(base_exist) if x is False]
@@ -399,8 +385,11 @@ def add_node_graph(given_base, list_transcripts, coordinate):
         # TODO this is quite slow this method here
         # Updates true index transcripts at nodes with false index coordinates
         for vertex in graph.vs.select(Base=base):
+
             for t in true_indices:
+
                 if vertex[list_transcripts[t]] == coordinate[t]:
+
                     for j in false_indices:
                         vertex[list_transcripts[j]] = coordinate[j]
                         transcript_hash_table[list_transcripts[j]].append(coordinate[j])
@@ -408,6 +397,7 @@ def add_node_graph(given_base, list_transcripts, coordinate):
 
     # elif False not in base_exist:
     #     print("Node already exists: not adding node")
+
 
 # TODO - Delete this method as it is no longer in use
 def add_edge(transcript, coordinate):
@@ -441,7 +431,7 @@ def add_edge(transcript, coordinate):
             print("Did not find node")
 
 
-# TODO - Rework method, it is adding redundant nodes that are already present in graph
+# TODO - Rewrite method so it does not add edges between nodes that already have node present
 def add_edge_entire_graph(dict_lengths):
 
     print(">>> Adding edges...")
@@ -481,14 +471,11 @@ def add_edge_entire_graph(dict_lengths):
             i -= 1
 
 
-
-#TODO - Need to optimize this method, it is very slow
+# TODO - Need to optimize this method, it is very slow - not sure how
 # Simplifies the graph by compacting nodes that have only one in degree and one out degree
 def simplify_graph(graph):
 
     print(">>> Simplifying graph...")
-
-    counter = 0
 
     i = 0
 
@@ -496,14 +483,15 @@ def simplify_graph(graph):
 
         vertex = graph.vs()[i]
 
-        # vertex out degree is int but vertex indegree is list - because neighbour is of vertexseq object
+        # Check if current node has only a single outgoing edge
         if vertex.outdegree() == 1:
             neighbor_id = graph.neighbors(vertex, mode="out")
             neighbor = graph.vs()[neighbor_id[0]]
 
-            # there should on be one value in the list
-            if neighbor.indegree() == 1:
+            # Checks if the adjacent outgoing edge of current node has only one incoming edge
+            if neighbor.indegree() == 1:  # there should on be one value in the list
 
+                # Gets base values for the current and neighbour nodes and combines them
                 v_base = vertex["Base"]
                 n_base = neighbor["Base"]
                 new_base = v_base + n_base
@@ -513,15 +501,19 @@ def simplify_graph(graph):
                 for index in graph.neighbors(neighbor_id[0], mode="out"):
                     graph.add_edge(vertex, graph.vs()[index])
 
+                # TODO - Double check what deleting nodes does to its edges,
+                # edges may still exist, should delete them too
                 # Neighbour vertex is deleted from the graph
                 graph.delete_vertices(neighbor_id)
 
             else:
-                i += 1
+                i += 1  # increases iteration if there is more then one incoming edge on neighbour node
         else:
-            i += 1
+            i += 1  # increases iteration if there is more then one outgoing edge on node
 
 
+# Writes out each node to a fasta file format, with each node being a sequence in the file
+# Used for checking sequences of individual nodes pre-sort or when ever
 def write_vertex_to_fasta(graph):
 
     print(">>> Printing out vertex sequences into fasta file... ")
@@ -540,6 +532,42 @@ def write_vertex_to_fasta(graph):
         i+=1
 
     SeqIO.write(records, "vertex_sequences.fasta", 'fasta')
+
+
+# Method retrieves the sequence for each transcript
+def reconstruct_transcript_sequence(graph, transcript_list):
+
+    transcripts = ["ENST00000456483.2", "ENST00000338799.5"]
+
+    records = []
+
+    for x in transcript_list:
+        # print("X : ", x)
+
+        seq_list = []
+        list_coords = []
+
+        for vertex in graph.vs():
+
+            if vertex.__getitem__(x) is not None:
+
+                ind = bisect.bisect(list_coords, vertex.__getitem__(x))
+                seq_list.insert(ind, vertex.__getitem__("Base"))
+
+                bisect.insort(list_coords, vertex.__getitem__(x))
+
+
+        sequence = ""
+        for s in seq_list:
+            sequence += str(s)
+
+        seq = Seq(sequence)
+        seq_rec = SeqRecord(seq)
+        seq_rec.id = (x)
+
+        records.append((seq_rec))
+
+    SeqIO.write(records, "ESR1_reconstructed_transcripts.fasta", "fasta")
 
 
 if __name__ == "__main__":
