@@ -5,6 +5,8 @@ from Bio.SeqRecord import  SeqRecord
 import re
 import time
 
+from collections import deque
+
 
 # Main function for working
 def main():
@@ -54,10 +56,14 @@ def main():
     # Simplify graph conactenating nodes that do not fork
     simplify_graph(graph)
 
-    graph.write_svg("small_graph.svg", layout="kk")
+    # print(">>> Drawing graph... ")
+    # graph.write_svg("graph.svg", layout="kk")
 
     # Graph summary
     print(graph.summary())
+
+    # Writing out each node sequence for blatting
+    # write_vertex_to_fasta(graph)
 
     # Sorts graph using khan algorithm
     sorted = khan_sort(graph)
@@ -66,7 +72,7 @@ def main():
     sorted_sequence = Seq(sorted)
     sorted_seq_rec = SeqRecord(sorted_sequence)
     sorted_seq_rec.id = "SORT00000000000.1"
-    SeqIO.write(sorted_seq_rec, "sorted.fasta", 'fasta')
+    SeqIO.write(sorted_seq_rec, "ESR1_sorted.fasta", 'fasta')
 
 
     '''
@@ -101,26 +107,67 @@ def get_transcript_ids(fasta):
     return transcript_ids
 
 
+#TODO BUG - Think there is a bug here adding multiple nodes to the output
 # Topologically sorts a graph using the Khan algorithm
 # seems to work without worrying about deleting edges, looks to take care of its self
 def khan_sort(graph):
 
     print(">> Sorting graph using khan algorithm....")
+
     # creates list of nodes in the graph and number of nodes
     node_list = graph.vs()
-    graph_length = len(graph.vs())
-    num_nodes = graph_length
 
     sorted_sequence = ''
 
-    while num_nodes > 0:
-        print("number of nodes : ", num_nodes)
-        for x in node_list:
-            if x.degree(type="in") == 0:
-                print("no incoming nodes")
-                sorted_sequence += x.__getitem__("Base")
-                graph.delete_vertices(x)
-                num_nodes -= 1
+    L = []
+    S = []
+
+    i = 0
+    graph_length = len(graph.vs())
+    num_nodes = graph_length
+
+    # Add initial nodes with no incoming edges to s for sorting
+
+    print("Initial length of graph: ", len(graph.vs()))
+
+    while len(graph.vs()) > 0:
+
+        if len(graph.vs()) == 1:
+            L.append(graph.vs()[0].__getitem__("Base"))
+            break
+
+        print("The length of graph: ", len(graph.vs))
+
+        for x in graph.vs():
+                if x.degree(mode="IN") == 0:
+                    print("Vertex \n", x, " has no incoming edges")
+                    S.append(x)
+
+                    for s in S:
+
+                        # need to get out going neighbour from s
+                        neighbours = graph.neighbors(s, mode="OUT")
+
+                        for j in neighbours:
+                            graph.delete_edges(graph.get_eid(s.index, j))
+                            print("Delete edge: ", s.index, j)
+
+                        L.append(s.__getitem__("Base"))
+                        S.remove(s)
+
+                        print("Delete vertex: ", s.index)
+                        graph.delete_vertices(s.index)
+
+                    break  # break out of for loop and start through the graph from scratch
+
+                else:
+                    print("Cycle must be present")
+
+    print(len(L))
+    print(L)
+
+    for l in L:
+        sorted_sequence += l
 
     print(">> Graph sorted, returning ordered nodes....")
 
@@ -202,6 +249,10 @@ def get_sequence(blat_blocks, fasta_file):
                     # TODO Add exception handling here if there is missing transcript from the fasta file
                     target = fasta_sequence[target_id]
 
+                    # print("Number blocks: ", num_blocks)
+                    # print(query_id, query_block_start, query_block_end, query_length)
+                    # print(target_id, target_block_start, target_block_end, target_length)
+
                     # grab the next block if there is one to find gap if there is one
                     query_gap_present = False
                     query_gap_size = 0
@@ -232,22 +283,18 @@ def get_sequence(blat_blocks, fasta_file):
 
                         # adds unaligned section before aligned blocks
                         if i == 0 and query_block_start != 0 and first_base is True:
+
                             for b1, base1 in enumerate(seq_record[0:query_block_start]):
                                 add_node_graph(base1, [query_id], [b1])
                             print("Added block: ", query_id, " ", 0, "-", query_block_start)
                             first_base = False
 
                         if i == 0 and target_block_start != 0 and first_base is True:
+
                             for b2, base2 in enumerate(seq_record[0:target_block_start]):
                                 add_node_graph(base2, [target_id], [b2])
                             print("Added block: ", target_id, " ", 0, "-", target_block_start)
                             first_base = False
-
-                        # add basses from qstart and tstart to the length of block size
-                        for b3, base3 in enumerate(seq_record[query_block_start:query_block_end]):
-                            add_node_graph(base3, [query_id, target_id], [query_block_start+b3, target_block_start+b3])
-                        print("Added block: ", query_id, " ", query_block_start, "-", query_block_end)
-                        print("Added block: ", target_id, " ", target_block_start, "-", target_block_end)
 
                         # Add gaps found in target or query sequence
                         if query_gap_present is True:
@@ -262,16 +309,28 @@ def get_sequence(blat_blocks, fasta_file):
                                 add_node_graph(base5, [target_id], [target_block_end+b5])
                             print("Added block: ", target_id, " ", target_block_start, "-", target_gap_end)
 
-                        # Adds bases after blocks to end of query or target sequence
-                        if i == num_blocks-1 and query_block_end != query_length:
-                            for b6, base6 in enumerate(seq_record[query_block_end:query_length]):
-                                add_node_graph(base6, [query_id], [query_block_end+b6])
-                            print("Added block: ", query_id, " ", query_block_end, "-", query_length)
 
-                        if i == num_blocks-1 and (target_block_end != target_length):
-                            for b7, base7 in enumerate(target[target_block_end:target_length]):
-                                add_node_graph(base7, [target_id], [target_block_end+b7])
-                            print("Added block: ", target_id, " ", target_block_end, "-", target_length)
+                        #TODO These don't seem to work, not sure why
+                        # Adds bases after blocks to end of query or target sequence
+                        if i == num_blocks-1:
+                            if query_block_end != query_length:
+                                for b, base in enumerate(seq_record[query_block_end:query_length]):
+                                    add_node_graph(base, [query_id], [query_block_end+b])
+                                print("Added block: ", query_id, " ", query_block_end, "-", query_length)
+
+                        if i == num_blocks - 1:
+                            if target_block_end != target_length:
+                                for b, base in enumerate(target[target_block_end:target_length]):
+                                    add_node_graph(base, [target_id], [target_block_end+b])
+                                print("Added block: ", target_id, " ", target_block_end, "-", target_length)
+
+
+
+                            # add basses from qstart and tstart to the length of block size
+                        for b3, base3 in enumerate(seq_record[query_block_start:query_block_end]):
+                            add_node_graph(base3, [query_id, target_id], [query_block_start+b3, target_block_start+b3])
+                        print("Added block: ", query_id, " ", query_block_start, "-", query_block_end)
+                        print("Added block: ", target_id, " ", target_block_start, "-", target_block_end)
 
     print(">> Returning block sequence....\n")
     return output_records
@@ -284,18 +343,23 @@ def write_fasta(list_records, filename):
 
 
 # Method for adding nodes to the graph; updates graph nodes
-def add_node_graph(base, list_transcripts, coordinate):
+def add_node_graph(given_base, list_transcripts, coordinate):
+
+    base = given_base.upper()
 
     global graph
     global transcript_hash_table
 
-    # print(list_transcripts)
+    # print("adding node.. ")
+
 
     # Checks if this is the first base being added to the graph
     # If this is the first base added to the graph add the node
     if len(graph.vs()) == 0:
         graph.add_vertex()
         graph.vs[len(graph.vs())-1]["Base"] = base
+
+        # print("Creating first node for the graph... ")
 
         for z, ba in enumerate(list_transcripts):
             graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
@@ -321,7 +385,7 @@ def add_node_graph(base, list_transcripts, coordinate):
         for z, ba in enumerate(list_transcripts):
             graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
 
-            # print("adding ", list_transcripts[z], "at coord", coordinate[z])
+            # print("Node does not exist -> Adding ", list_transcripts[z], "at coord", coordinate[z])
 
             # Added transcript coordinates to hash table
             transcript_hash_table[list_transcripts[z]].append(coordinate[z])
@@ -332,6 +396,7 @@ def add_node_graph(base, list_transcripts, coordinate):
         true_indices = [i for i, x in enumerate(base_exist) if x is True]
         false_indices = [i for i, x in enumerate(base_exist) if x is False]
 
+        # TODO this is quite slow this method here
         # Updates true index transcripts at nodes with false index coordinates
         for vertex in graph.vs.select(Base=base):
             for t in true_indices:
@@ -339,16 +404,12 @@ def add_node_graph(base, list_transcripts, coordinate):
                     for j in false_indices:
                         vertex[list_transcripts[j]] = coordinate[j]
                         transcript_hash_table[list_transcripts[j]].append(coordinate[j])
+                        # print("Update node: ", list_transcripts[t], "-", coordinate[t], " with ", list_transcripts[j], "-", coordinate[j])
 
+    # elif False not in base_exist:
+    #     print("Node already exists: not adding node")
 
-# TODO look at re-write so that it only runs through the graph once,
-# - So look through list of transcripts - add edges the currenty way but do only need to iterate through the graph once
-# Add an edge between most recently added edges in the one transcript - current method implemented
-# OR
-# After nodes are added - iterate through graph along each transcript sequence and co-ordinates added edges,
-# if edge exist between nodes already then no need to add them and can simplify that node?
-# - In theory every transcript co-ordinate is in the graph
-# - So can just run down the graph adding nodes without searching if they exist? Only need to run through the graph
+# TODO - Delete this method as it is no longer in use
 def add_edge(transcript, coordinate):
 
     global graph
@@ -380,6 +441,7 @@ def add_edge(transcript, coordinate):
             print("Did not find node")
 
 
+# TODO - Rework method, it is adding redundant nodes that are already present in graph
 def add_edge_entire_graph(dict_lengths):
 
     print(">>> Adding edges...")
@@ -396,22 +458,28 @@ def add_edge_entire_graph(dict_lengths):
         edge_index[tran] = [None] * length
 
     # Printing insanity checking here - looks like it is making the right size empty lists
-    print("Insanity checking")
-    for edge in edge_index:
-        print(edge, len(edge_index[edge]))
+    # print("Insanity checking")
+    # for edge in edge_index:
+    #     print(edge, len(edge_index[edge]))
 
     for vertex in graph.vs():
         for tran in edge_index:
             if vertex.__getitem__(tran) is not None:
                 edge_index[tran][vertex.__getitem__(tran)] = vertex.index
 
+    # for e in edge_index:
+    #     print(e, "\n")
+    #     print(edge_index[e])
+
     for edge in edge_index:
         index_list = edge_index[edge]
         i = len(index_list)
+
         while i > 1:
             graph.add_edge(index_list[i-2], index_list[i-1])
-            # print("edge from: ", list[i-2], " -> ", list[i-1], " in ", edge)
+            # print("edge from: ", index_list[i-2], " -> ", index_list[i-1], " in ", edge)
             i -= 1
+
 
 
 #TODO - Need to optimize this method, it is very slow
@@ -419,6 +487,8 @@ def add_edge_entire_graph(dict_lengths):
 def simplify_graph(graph):
 
     print(">>> Simplifying graph...")
+
+    counter = 0
 
     i = 0
 
@@ -445,10 +515,31 @@ def simplify_graph(graph):
 
                 # Neighbour vertex is deleted from the graph
                 graph.delete_vertices(neighbor_id)
+
             else:
                 i += 1
         else:
             i += 1
+
+
+def write_vertex_to_fasta(graph):
+
+    print(">>> Printing out vertex sequences into fasta file... ")
+
+    records = []
+
+    for vert in graph.vs():
+        print(vert.__getitem__("Base"))
+
+    i = 1
+    for vertex in graph.vs():
+        vert_seq = Seq(vertex.__getitem__("Base"))
+        vert_seq_rec = SeqRecord(vert_seq)
+        vert_seq_rec.id = ("ENST00000000000." + str(i))
+        records.append(vert_seq_rec)
+        i+=1
+
+    SeqIO.write(records, "vertex_sequences.fasta", 'fasta')
 
 
 if __name__ == "__main__":
