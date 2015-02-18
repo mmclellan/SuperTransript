@@ -57,18 +57,13 @@ def main():
     print(graph.summary())
 
     # Simplify graph conactenating nodes that do not fork
-    # simplify_graph(graph)
-
-    # print(">>> Drawing graph... ")
-    # graph.write_svg("graph.svg", layout="kk")
+    simplify_graph(graph)
 
     # Writing out each node sequence for blatting
     # write_vertex_to_fasta(graph)
 
     # Reconstruct transcripts
     reconstruct_transcript_sequence(graph, transcripts)
-
-
 
     # Sorts graph using khan algorithm
     sorted = khan_sort(graph)
@@ -79,8 +74,6 @@ def main():
     sorted_seq_rec.id = "SORT00000000000.1"
     SeqIO.write(sorted_seq_rec, "ESR1_sorted.fasta", 'fasta')
 
-
-
     # Write graph information to text file for checking
     f = open('graph_output.txt', 'w')
     for vertex in graph.vs():
@@ -88,6 +81,9 @@ def main():
         f.write("\n")
     f.write("\n")
     f.close()
+
+    # print(">>> Drawing graph... ")
+    # graph.write_svg("graph.svg", layout="kk")
 
 
 # Method to retrieve list of transcript IDs from a fasta
@@ -110,56 +106,82 @@ def khan_sort(graph):
 
     print(">> Sorting graph using khan algorithm....")
 
-    # creates list of nodes in the graph and number of nodes
-    node_list = graph.vs()
-
     sorted_sequence = ''
 
     L = []
     S = []
 
-    i = 0
-    graph_length = len(graph.vs())
-    num_nodes = graph_length
-
-    # Add initial nodes with no incoming edges to s for sorting
-
     print("Initial length of graph: ", len(graph.vs()))
 
-    while len(graph.vs()) > 0:
+    # while len(graph.vs()) > 0:
+    #
+    #     # If length of graph is 1, then simply append the final node to the list
+    #     if len(graph.vs()) == 1:
+    #         L.append(graph.vs()[0].__getitem__("Base"))
+    #         graph.delete_vertices(0)
+    #         break
+    #
+    #     for x in graph.vs():
+    #             if x.degree(mode="IN") == 0:
+    #                 # print("Vertex \n", x, " has no incoming edges")
+    #                 S.append(x)
+    #
+    #                 for s in S:
+    #
+    #                     # need to get out going neighbour from s
+    #                     neighbours = graph.neighbors(s, mode="OUT")
+    #
+    #                     for j in neighbours:
+    #                         graph.delete_edges(graph.get_eid(s.index, j))
+    #
+    #                     L.append(s.__getitem__("Base"))
+    #                     S.remove(s)
+    #
+    #                     graph.delete_vertices(s.index)
+    #
+    #                 break  # break out of for loop and start through the graph from scratch
+    #
+    # for l in L:
+    #     sorted_sequence += l
 
-        # If length of graph is 1, then simply append the final node to the list
-        if len(graph.vs()) == 1:
-            L.append(graph.vs()[0].__getitem__("Base"))
-            break
 
-        for x in graph.vs():
-                if x.degree(mode="IN") == 0:
-                    # print("Vertex \n", x, " has no incoming edges")
-                    S.append(x)
+    # # Get initial list of nodes with no incoming edges
+    # print("get inital no incoming nodes")
+    # for vertex in graph.vs():
+    #     if vertex.degree(mode="IN") == 0:
+    #         L.append(vertex)
+    #
+    # print(len(L))
+    #
+    # # Sorting using the lists
+    # while L:
+    #     node = L.pop(0)
+    #     S.append(node)
+    #
+    #     print(node.index)
+    #
+    #     neighbours = graph.neighbors(node)
+    #
+    #     for m in neighbours:
+    #         print(node)
+    #         print(graph.vs[m])
+    #
+    #         graph.delete_edges(graph.get_eid(node.index, m))
+    #
+    #         if graph.vs[m].degree(mode="IN") == 0:
+    #             L.append(graph.vs()[m])
 
-                    for s in S:
-
-                        # need to get out going neighbour from s
-                        neighbours = graph.neighbors(s, mode="OUT")
-
-                        for j in neighbours:
-                            graph.delete_edges(graph.get_eid(s.index, j))
-
-                        L.append(s.__getitem__("Base"))
-                        S.remove(s)
-
-                        graph.delete_vertices(s.index)
-                        print("deleted vertex:")
-
-                    break  # break out of for loop and start through the graph from scratch
+    # for s in S:
+    #     sorted_sequence += s.__getitem__("Base")
+    #
 
 
-    for l in L:
-        sorted_sequence += l
+    sort = graph.topological_sorting(mode="OUT")
+
+    for s in sort:
+        sorted_sequence += graph.vs()[s].__getitem__("Base")
 
     print(">> Graph sorted, returning ordered nodes....")
-
     return sorted_sequence
 
 
@@ -399,38 +421,6 @@ def add_node_graph(given_base, list_transcripts, coordinate):
     #     print("Node already exists: not adding node")
 
 
-# TODO - Delete this method as it is no longer in use
-def add_edge(transcript, coordinate):
-
-    global graph
-
-    # pass through transcript length and transcript stopping coordinate
-    # Use counter i or something and set it to the length of
-    # While i is greater then 0
-        # count back from i to 0
-        # add edge from coordinate i to i-1, then i -= 1
-
-
-    # search graph and add ids to list
-        # iterate through the list of vertex indexes and add nodes between them?
-
-    if coordinate > 0:
-
-        for vertex in graph.vs():
-
-            if vertex[transcript] == (coordinate-1):
-                node_a = vertex
-            if vertex[transcript] == coordinate:
-                node_b = vertex
-
-        try:
-            if len(graph.es.select(_within=[node_a.index, node_b.index])) == 0:
-                graph.add_edge(node_a, node_b)
-
-        except UnboundLocalError:
-            print("Did not find node")
-
-
 # TODO - Rewrite method so it does not add edges between nodes that already have node present
 def add_edge_entire_graph(dict_lengths):
 
@@ -476,10 +466,8 @@ def add_edge_entire_graph(dict_lengths):
 def simplify_graph(graph):
 
     print(">>> Simplifying graph...")
-
     i = 0
-
-    while i != len(graph.vs()):
+    while i < len(graph.vs()):
 
         vertex = graph.vs()[i]
 
@@ -538,6 +526,8 @@ def write_vertex_to_fasta(graph):
 def reconstruct_transcript_sequence(graph, transcript_list):
 
     transcripts = ["ENST00000456483.2", "ENST00000338799.5"]
+
+    print(">>> Reconstructing transcripts from graph... ")
 
     records = []
 
