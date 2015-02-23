@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="05175d66-c905-4ee4-bf92-dd5fdb290199" name="Default" comment="UPDATES&#10;- Deleted add single edge method - Has been made redundant by newer adding edge method &#10;- Rewrote khan sorting algorithm - Needs more work but is significantly faster then previous iteration  &#10;&#10;ISSUES&#10;- Currently simplifying the graph has an error - when reconstructing the transcripts from the graph, some of the transcripts are shorter missing bases - not sure why &#10;- Khan sorting the graph on the single bases need to be reworked - When reaching a fork in the graph, the fork causes the algorithm to add nodes alternating between the two forked paths - need to travel down one parth then down the other - Combining nodes may be needed">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/dev/ESR1.fasta" afterPath="" />
+    <list default="true" id="05175d66-c905-4ee4-bf92-dd5fdb290199" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/dev/networkx.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/dev/nxTest.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/superTransript.iml" afterPath="$PROJECT_DIR$/.idea/superTransript.iml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dev/test.py" afterPath="$PROJECT_DIR$/dev/test.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -41,24 +43,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="test.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/dev/test.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.6136821" vertical-offset="3110" max-vertical-offset="4125">
-              <caret line="501" column="0" selection-start-line="501" selection-start-column="0" selection-end-line="501" selection-end-column="0" />
-              <folding>
-                <element signature="e#0#20#0" expanded="true" />
-                <element signature="e#5501#6207#0" expanded="false" />
-                <element signature="e#6434#12878#0" expanded="false" />
-                <element signature="e#13253#15959#0" expanded="false" />
-                <element signature="e#16099#17342#0" expanded="false" />
-                <element signature="e#19182#19633#0" expanded="false" />
-                <element signature="e#19754#20564#0" expanded="false" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="analysis.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/dev/analysis.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -66,6 +50,23 @@
               <caret line="10" column="30" selection-start-line="10" selection-start-column="30" selection-end-line="10" selection-end-column="30" />
               <folding>
                 <element signature="e#32#49#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="test.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/dev/test.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="-0.9848485" vertical-offset="915" max-vertical-offset="4530">
+              <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#20#0" expanded="true" />
+                <element signature="e#5726#6432#0" expanded="false" />
+                <element signature="e#6659#13103#0" expanded="false" />
+                <element signature="e#13478#16184#0" expanded="false" />
+                <element signature="e#16324#17567#0" expanded="false" />
+                <element signature="e#20055#20865#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -94,6 +95,8 @@
         <option value="$PROJECT_DIR$/dev/timing.py" />
         <option value="$PROJECT_DIR$/dev/analysis.py" />
         <option value="$PROJECT_DIR$/dev/test.py" />
+        <option value="$PROJECT_DIR$/dev/networkx.py" />
+        <option value="$PROJECT_DIR$/dev/nxTest.py" />
       </list>
     </option>
   </component>
@@ -101,10 +104,9 @@
     <detection-done>true</detection-done>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="960" />
     <option name="y" value="23" />
-    <option name="width" value="960" />
-    <option name="height" value="1138" />
+    <option name="width" value="1280" />
+    <option name="height" value="738" />
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <OptionsSetting value="true" id="Add" />
@@ -117,7 +119,7 @@
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
   <component name="ProjectView">
-    <navigator proportions="" version="1">
+    <navigator currentView="ProjectPane" proportions="" version="1">
       <flattenPackages />
       <showMembers />
       <showModules />
@@ -128,7 +130,43 @@
       <autoscrollFromSource />
       <sortByType ProjectPane="true" />
     </navigator>
-    <panes />
+    <panes>
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="superTransript" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="superTransript" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SuperTransript" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="superTransript" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="SuperTransript" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="dev" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scope" />
+    </panes>
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
@@ -137,7 +175,7 @@
     <property name="options.splitter.main.proportions" value="0.21007685" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="FullScreen" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../venv/bin/python3.4" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../venv/bin/ipython3" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="64" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
     <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="65" />
@@ -169,47 +207,7 @@
       <recent name="$PROJECT_DIR$/dev" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.analysis">
-    <configuration default="false" name="turtle" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/docs" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="superTransript" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/docs/turtle.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <RunnerSettings RunnerId="PyDebugRunner" />
-      <ConfigurationWrapper RunnerId="PyDebugRunner" />
-      <method />
-    </configuration>
-    <configuration default="false" name="graph" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dev" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="superTransript" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dev/graph.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <RunnerSettings RunnerId="PyDebugRunner" />
-      <ConfigurationWrapper RunnerId="PyDebugRunner" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="Python.nxTest">
     <configuration default="false" name="timing" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -264,6 +262,46 @@
       <module name="superTransript" />
       <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dev/analysis.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <RunnerSettings RunnerId="PyDebugRunner" />
+      <ConfigurationWrapper RunnerId="PyDebugRunner" />
+      <method />
+    </configuration>
+    <configuration default="false" name="networkx" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dev" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="superTransript" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dev/networkx.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <RunnerSettings RunnerId="PyDebugRunner" />
+      <ConfigurationWrapper RunnerId="PyDebugRunner" />
+      <method />
+    </configuration>
+    <configuration default="false" name="nxTest" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/dev" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="superTransript" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/dev/nxTest.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <RunnerSettings RunnerId="PyDebugRunner" />
@@ -420,19 +458,19 @@
     </configuration>
     <list size="6">
       <item index="0" class="java.lang.String" itemvalue="Python.class_example" />
-      <item index="1" class="java.lang.String" itemvalue="Python.turtle" />
-      <item index="2" class="java.lang.String" itemvalue="Python.graph" />
-      <item index="3" class="java.lang.String" itemvalue="Python.timing" />
-      <item index="4" class="java.lang.String" itemvalue="Python.test" />
-      <item index="5" class="java.lang.String" itemvalue="Python.analysis" />
+      <item index="1" class="java.lang.String" itemvalue="Python.timing" />
+      <item index="2" class="java.lang.String" itemvalue="Python.test" />
+      <item index="3" class="java.lang.String" itemvalue="Python.analysis" />
+      <item index="4" class="java.lang.String" itemvalue="Python.networkx" />
+      <item index="5" class="java.lang.String" itemvalue="Python.nxTest" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.analysis" />
-        <item index="1" class="java.lang.String" itemvalue="Python.test" />
-        <item index="2" class="java.lang.String" itemvalue="Python.timing" />
-        <item index="3" class="java.lang.String" itemvalue="Python.graph" />
-        <item index="4" class="java.lang.String" itemvalue="Python.turtle" />
+        <item index="0" class="java.lang.String" itemvalue="Python.nxTest" />
+        <item index="1" class="java.lang.String" itemvalue="Python.networkx" />
+        <item index="2" class="java.lang.String" itemvalue="Python.test" />
+        <item index="3" class="java.lang.String" itemvalue="Python.analysis" />
+        <item index="4" class="java.lang.String" itemvalue="Python.timing" />
       </list>
     </recent_temporary>
   </component>
@@ -501,7 +539,13 @@
       <option name="project" value="LOCAL" />
       <updated>1424219209101</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="UPDATES&#10;- Deleted add single edge method - Has been made redundant by newer adding edge method &#10;- Rewrote khan sorting algorithm - Needs more work but is significantly faster then previous iteration  &#10;&#10;ISSUES&#10;- Currently simplifying the graph has an error - when reconstructing the transcripts from the graph, some of the transcripts are shorter missing bases - not sure why &#10;- Khan sorting the graph on the single bases need to be reworked - When reaching a fork in the graph, the fork causes the algorithm to add nodes alternating between the two forked paths - need to travel down one parth then down the other - Combining nodes may be needed">
+      <created>1424238936061</created>
+      <option name="number" value="00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1424238936061</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -525,31 +569,31 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="960" y="23" width="960" height="1138" extended-state="0" />
-    <editor active="false" />
+    <frame x="0" y="23" width="1280" height="738" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32843137" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32941177" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.327451" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24836601" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.314164" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31374106" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29516128" sideWeight="0.49960285" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
-      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39910313" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.28548387" sideWeight="0.50039715" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22254902" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="FLOATING" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="249" y="181" width="905" height="683" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3297062" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.19215687" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.56774193" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3292797" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.31213307" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -576,7 +620,8 @@
     <MESSAGE value="- Rewrote method for sorting graph&#10;- Wrote method to write vertex sequences out to fasta file to try and trouble shoot repeat error" />
     <MESSAGE value="- Wrote method that reproduces transcripts from the assembled graph - seems to work correctly&#10;- Sorting method still seems to have issues, but have ideas to iron out the kinks. &#10;- Probably going to give up on simplifying graph, very slow, just sort the nodes as bases&#10;" />
     <MESSAGE value="- Update code" />
-    <option name="LAST_COMMIT_MESSAGE" value="- Update code" />
+    <MESSAGE value="UPDATES&#10;- Deleted add single edge method - Has been made redundant by newer adding edge method &#10;- Rewrote khan sorting algorithm - Needs more work but is significantly faster then previous iteration  &#10;&#10;ISSUES&#10;- Currently simplifying the graph has an error - when reconstructing the transcripts from the graph, some of the transcripts are shorter missing bases - not sure why &#10;- Khan sorting the graph on the single bases need to be reworked - When reaching a fork in the graph, the fork causes the algorithm to add nodes alternating between the two forked paths - need to travel down one parth then down the other - Combining nodes may be needed" />
+    <option name="LAST_COMMIT_MESSAGE" value="UPDATES&#10;- Deleted add single edge method - Has been made redundant by newer adding edge method &#10;- Rewrote khan sorting algorithm - Needs more work but is significantly faster then previous iteration  &#10;&#10;ISSUES&#10;- Currently simplifying the graph has an error - when reconstructing the transcripts from the graph, some of the transcripts are shorter missing bases - not sure why &#10;- Khan sorting the graph on the single bases need to be reworked - When reaching a fork in the graph, the fork causes the algorithm to add nodes alternating between the two forked paths - need to travel down one parth then down the other - Combining nodes may be needed" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -590,30 +635,22 @@
           </properties>
         </breakpoint>
       </default-breakpoints>
-      <option name="time" value="21" />
+      <option name="time" value="22" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file:///Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/site-packages/igraph/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="50988" max-vertical-offset="60060">
-          <caret line="3437" column="0" selection-start-line="3437" selection-start-column="0" selection-end-line="3437" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/dev/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4515">
+        <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="4530">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -655,12 +692,11 @@
           <caret line="32" column="32" selection-start-line="32" selection-start-column="32" selection-end-line="32" selection-end-column="32" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -702,12 +738,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -753,12 +788,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -783,12 +817,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -813,12 +846,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -843,12 +875,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -873,12 +904,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -896,12 +926,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -919,12 +948,11 @@
           <caret line="43" column="26" selection-start-line="43" selection-start-column="26" selection-end-line="43" selection-end-column="26" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -949,12 +977,11 @@
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -1036,13 +1063,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file:///Library/Frameworks/Python.framework/Versions/3.4/lib/python3.4/site-packages/igraph/__init__.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.23049219" vertical-offset="50988" max-vertical-offset="60060">
-          <caret line="3437" column="0" selection-start-line="3437" selection-start-column="0" selection-end-line="3437" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/dev/analysis.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0" vertical-offset="0" max-vertical-offset="240">
@@ -1053,18 +1073,31 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/dev/nxTest.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.3125" vertical-offset="0" max-vertical-offset="315">
+          <caret line="5" column="10" selection-start-line="5" selection-start-column="10" selection-end-line="5" selection-end-column="10" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/dev/networkx.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-3.5" vertical-offset="885" max-vertical-offset="3030">
+          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/dev/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.6136821" vertical-offset="3110" max-vertical-offset="4125">
-          <caret line="501" column="0" selection-start-line="501" selection-start-column="0" selection-end-line="501" selection-end-column="0" />
+        <state vertical-scroll-proportion="-0.9848485" vertical-offset="915" max-vertical-offset="4530">
+          <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
           <folding>
             <element signature="e#0#20#0" expanded="true" />
-            <element signature="e#5501#6207#0" expanded="false" />
-            <element signature="e#6434#12878#0" expanded="false" />
-            <element signature="e#13253#15959#0" expanded="false" />
-            <element signature="e#16099#17342#0" expanded="false" />
-            <element signature="e#19182#19633#0" expanded="false" />
-            <element signature="e#19754#20564#0" expanded="false" />
+            <element signature="e#5726#6432#0" expanded="false" />
+            <element signature="e#6659#13103#0" expanded="false" />
+            <element signature="e#13478#16184#0" expanded="false" />
+            <element signature="e#16324#17567#0" expanded="false" />
+            <element signature="e#20055#20865#0" expanded="false" />
           </folding>
         </state>
       </provider>
