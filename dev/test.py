@@ -1,7 +1,7 @@
 from igraph import *
 from Bio import SeqIO
 from Bio.Seq import Seq
-from Bio.SeqRecord import  SeqRecord
+from Bio.SeqRecord import SeqRecord
 import re
 import time
 import bisect
@@ -35,7 +35,7 @@ def main():
     graph.vs["Base"] = ""
 
     # Get the block co-ordinates from BLAT output
-    output = psl_parse('output_2.psl')
+    output = psl_parse('output_4.psl')
 
     # Gets the sequence from fasta file. Also adds the nodes to the graph as sequences are retrieved
     get_sequence(output, "ESR1_transcripts_for_Michael.fasta")
