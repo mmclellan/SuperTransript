@@ -1,41 +1,56 @@
-from igraph import *
-from Bio import SeqIO
-from Bio.Seq import Seq
-from Bio.SeqRecord import SeqRecord
+__author__ = 'michaelmclellan'
+
+import networkx as nx
 import re
 import time
 import bisect
+import sys
+from Bio import SeqIO
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
 
 ## TO-DO LIST ##
 # TODO - Look at validation method, once graph is sorted,
 # - check each node that the adjacent nodes transcript co-ordinate is not lower then its parent
 # TODO - Retrieve transcript sequences from graph, make sure the graph is correctly holding data
 
+
 # Main function for working
 def main():
+
+    parameters = sys.argv
+
+    input_filename = parameters[1]
 
     # fasta file for corresponding genes
     fasta_filename = "ESR1_transcripts_for_Michael.fasta"
 
-    print('\nSuper transcript magic algorith!... \n')
+    print('\nSuper transcript magic algorithm!... \n')
     print("\n>> Retrieving transcript IDs...")
+
     transcripts = get_transcript_ids(fasta_filename)
 
     print("\n>> Constructing empty graph structure and hash table... ")
-    global graph
-    graph = Graph(directed=True)
 
+    # Global variables #
+    global graph
     global transcript_hash_table
+
+    global adjacency_list
+
+    adjacency_list = {}
+
+    graph = nx.DiGraph(name=input_filename)
     transcript_hash_table = {}
 
     # Sets graph attributes, so each node has an empty hash table with transcript as key
-    for x in transcripts:
-        graph.vs[x] = ""
-        transcript_hash_table[x] = []
-    graph.vs["Base"] = ""
+    for tran in transcripts:
+        graph.graph[tran] = ''
+        transcript_hash_table[tran] = []
+    graph.graph['Base'] = ''
 
     # Get the block co-ordinates from BLAT output
-    output = psl_parse('output_2.psl')
+    output = psl_parse(input_filename)
 
     # Gets the sequence from fasta file. Also adds the nodes to the graph as sequences are retrieved
     get_sequence(output, "ESR1_transcripts_for_Michael.fasta")
@@ -49,35 +64,43 @@ def main():
 
     add_edge_entire_graph(transcript_lengths)
 
-    print(graph.summary())
+    graph.remove_node(None)
 
-    print(">>> Combinging edges...")
-    graph.simplify()
+    # Print info on graph
+    print(nx.info(graph))
 
-    print(graph.summary())
+    # fh = open("test.edgelist", 'wb')
+    # print(nx.write_edgelist(graph, fh, data=True))
+
+    # print(graph.summary())
+
+    # print(">>> Combinging edges...")
+    # graph.simplify()
+
+    # print(graph.summary())
 
     # Simplify graph conactenating nodes that do not fork
-    simplify_graph(graph)
+    # simplify_graph(graph)
 
     # Writing out each node sequence for blatting
     # write_vertex_to_fasta(graph)
 
     # Reconstruct transcripts
-    reconstruct_transcript_sequence(graph, transcripts)
+    # reconstruct_transcript_sequence(graph, transcripts)
 
     # Sorts graph using khan algorithm
-    sorted = khan_sort(graph)
+    # sorted = khan_sort(graph)
 
-    print(">>> Writing supertranscript to fasta file...")
-    sorted_sequence = Seq(sorted)
-    sorted_seq_rec = SeqRecord(sorted_sequence)
-    sorted_seq_rec.id = "SORT00000000000.1"
-    SeqIO.write(sorted_seq_rec, "ESR1_sorted_singlefunction.fasta", 'fasta')
+    # print(">>> Writing supertranscript to fasta file...")
+    # sorted_sequence = Seq(sorted)
+    # sorted_seq_rec = SeqRecord(sorted_sequence)
+    # sorted_seq_rec.id = "SORT00000000000.1"
+    # SeqIO.write(sorted_seq_rec, "ESR1_sorted_singlefunction.fasta", 'fasta')
 
     # Write graph information to text file for checking
     f = open('graph_output.txt', 'w')
-    for vertex in graph.vs():
-        f.write(str(vertex))
+    for node in graph.nodes(data=True):
+        f.write(str(node))
         f.write("\n")
     f.write("\n")
     f.close()
@@ -86,8 +109,9 @@ def main():
     # graph.write_svg("graph.svg", layout="kk")
 
 
-# Method to retrieve list of transcript IDs from a fasta
 def get_transcript_ids(fasta):
+
+    # Method to retrieve list of transcript IDs from a fasta #
 
     transcript_ids = []
     filename = fasta
@@ -101,6 +125,7 @@ def get_transcript_ids(fasta):
 # TODO - Method, so that when choosing a new no incoming node, checks that has a larger coordinate,
 # - Use the genomic coordinates to help the sorting progress, to get the correct order
 
+
 # Topologically sorts a graph using the Khan algorithm
 def khan_sort(graph, transcripts):
 
@@ -112,38 +137,6 @@ def khan_sort(graph, transcripts):
     S = []
 
     print("Initial length of graph: ", len(graph.vs()))
-
-    # while len(graph.vs()) > 0:
-    #
-    #     # If length of graph is 1, then simply append the final node to the list
-    #     if len(graph.vs()) == 1:
-    #         L.append(graph.vs()[0].__getitem__("Base"))
-    #         graph.delete_vertices(0)
-    #         break
-    #
-    #     for x in graph.vs():
-    #             if x.degree(mode="IN") == 0:
-    #                 # print("Vertex \n", x, " has no incoming edges")
-    #                 S.append(x)
-    #
-    #                 for s in S:
-    #
-    #                     # need to get out going neighbour from s
-    #                     neighbours = graph.neighbors(s, mode="OUT")
-    #
-    #                     for j in neighbours:
-    #                         graph.delete_edges(graph.get_eid(s.index, j))
-    #
-    #                     L.append(s.__getitem__("Base"))
-    #                     S.remove(s)
-    #
-    #                     graph.delete_vertices(s.index)
-    #
-    #                 break  # break out of for loop and start through the graph from scratch
-    #
-    # for l in L:
-    #     sorted_sequence += l
-
 
     # Get initial list of nodes with no incoming edges
     print("get inital no incoming nodes")
@@ -185,10 +178,6 @@ def khan_sort(graph, transcripts):
     for s in S:
         sorted_sequence += s.__getitem__("Base")
 
-    # sort = graph.topological_sorting(mode="OUT")
-    # for s in sort:
-    #     sorted_sequence += graph.vs()[s].__getitem__("Base")
-
     print(">> Graph sorted, returning ordered nodes....")
     return sorted_sequence
 
@@ -225,6 +214,9 @@ def psl_parse(filename):
 # May need to add +1 to block starts and ends to account for 0-indexing
 def get_sequence(blat_blocks, fasta_file):
 
+    print(">> Finding genomic sequence from from fasta file....")
+    print(">> Opening fasta file...")
+
     # Hash table storing all the sequence record objects for the transcripts
     fasta_sequence = {}
     for block in blat_blocks:
@@ -233,8 +225,7 @@ def get_sequence(blat_blocks, fasta_file):
 
     global graph
 
-    print(">> Finding genomic sequence from from fasta file....")
-    print(">> Opening fasta file...")
+    print(">> Building nodes... ")
 
     output_records = []
 
@@ -248,7 +239,7 @@ def get_sequence(blat_blocks, fasta_file):
 
                 for i, z in enumerate(block[4]):
 
-                    print("\nPrinting i: ", i)
+                    # print("\nPrinting i: ", i)
 
                     num_blocks = len(block[4])
 
@@ -257,16 +248,15 @@ def get_sequence(blat_blocks, fasta_file):
                     query_block_start = int(block[5][i])
                     query_block_end = int(block[5][i])+block_size
                     query_length = int(block[1])
-
                     query = fasta_sequence[query_id]
 
                     target_id = str(block[2])
                     target_block_start = int(block[6][i])
                     target_block_end = int(block[6][i])+block_size
                     target_length = int(block[3])
+                    target = fasta_sequence[target_id]
 
                     # TODO Add exception handling here if there is missing transcript from the fasta file
-                    target = fasta_sequence[target_id]
 
                     # print("Number blocks: ", num_blocks)
                     # print(query_id, query_block_start, query_block_end, query_length)
@@ -275,9 +265,11 @@ def get_sequence(blat_blocks, fasta_file):
                     # grab the next block if there is one to find gap if there is one
                     query_gap_present = False
                     query_gap_size = 0
+
                     target_gap_present = False
                     target_gap_size = 0
 
+                    # Determines if there are gaps or not in the transcripts
                     if num_blocks > 1:
                         try:
                             query_next_block_start = int(block[5][i+1])
@@ -285,8 +277,8 @@ def get_sequence(blat_blocks, fasta_file):
                                 query_gap_present = True
                                 query_gap_size = query_next_block_start - query_block_end
 
-                        except IndexError:
-                            print("No next query block")
+                        except IndexError: # exception if there is no block
+                            pass
 
                         try:
                             target_next_block_start = int(block[6][i+1])
@@ -294,62 +286,57 @@ def get_sequence(blat_blocks, fasta_file):
                                 target_gap_present = True
                                 target_gap_size = target_next_block_start - target_block_end
 
-                        except IndexError:
-                            print("No next target block")
+                        except IndexError: # exception if there is no block
+                            pass
 
-                    # while query ID and target ID do not match
+                    # Ignores the BLATs between the same sequences
                     if query_id != target_id:
 
-                        # adds unaligned section before aligned blocks
+                        # ADDS UNALIGNED SECTION FOR TRANSCRIPTS 
                         if i == 0 and query_block_start != 0 and first_base is True:
-
                             for b1, base1 in enumerate(seq_record[0:query_block_start]):
                                 add_node_graph(base1, [query_id], [b1])
-                            print("Added block: ", query_id, " ", 0, "-", query_block_start)
+                            # print("Added block: ", query_id, " ", 0, "-", query_block_start)
                             first_base = False
 
                         if i == 0 and target_block_start != 0 and first_base is True:
-
                             for b2, base2 in enumerate(seq_record[0:target_block_start]):
                                 add_node_graph(base2, [target_id], [b2])
-                            print("Added block: ", target_id, " ", 0, "-", target_block_start)
+                            # print("Added block: ", target_id, " ", 0, "-", target_block_start)
                             first_base = False
 
-                        # Add gaps found in target or query sequence
-                        if query_gap_present is True:
-                            query_gap_end = query_block_end+query_gap_size
-                            for b4, base4 in enumerate(seq_record[query_block_end:query_gap_end]):
-                                add_node_graph(base4, [query_id], [query_block_end+b4])
-                            print("Added block: ", query_id, " ", query_block_end, "-", query_gap_end)
-
-                        if target_gap_present is True:
-                            target_gap_end = target_block_end+target_gap_size
-                            for b5, base5 in enumerate(seq_record[target_block_end:target_gap_end]):
-                                add_node_graph(base5, [target_id], [target_block_end+b5])
-                            print("Added block: ", target_id, " ", target_block_start, "-", target_gap_end)
-
+                        # ADD BASSES FROM ALIGNED SECTION
+                        for b3, base3 in enumerate(seq_record[query_block_start:query_block_end]):
+                            add_node_graph(base3, [query_id, target_id], [query_block_start+b3, target_block_start+b3])
+                            # print("Added block: ", query_id, " ", query_block_start, "-", query_block_end)
+                            # print("Added block: ", target_id, " ", target_block_start, "-", target_block_end)
 
                         #TODO These don't seem to work, not sure why
-                        # Adds bases after blocks to end of query or target sequence
+                        # ADDS BLOCKS AFTER ALIGNMENT SECTIONG
                         if i == num_blocks-1:
                             if query_block_end != query_length:
                                 for b, base in enumerate(seq_record[query_block_end:query_length]):
                                     add_node_graph(base, [query_id], [query_block_end+b])
-                                print("Added block: ", query_id, " ", query_block_end, "-", query_length)
+                                # print("Added block: ", query_id, " ", query_block_end, "-", query_length)
 
                         if i == num_blocks - 1:
                             if target_block_end != target_length:
                                 for b, base in enumerate(target[target_block_end:target_length]):
                                     add_node_graph(base, [target_id], [target_block_end+b])
-                                print("Added block: ", target_id, " ", target_block_end, "-", target_length)
+                                # print("Added block: ", target_id, " ", target_block_end, "-", target_length)
 
+                        # ADDS GAPS IF PRESENT
+                        if query_gap_present is True:
+                            query_gap_end = query_block_end+query_gap_size
+                            for b4, base4 in enumerate(seq_record[query_block_end:query_gap_end]):
+                                add_node_graph(base4, [query_id], [query_block_end+b4])
+                            # print("Added block: ", query_id, " ", query_block_end, "-", query_gap_end)
 
-
-                            # add basses from qstart and tstart to the length of block size
-                        for b3, base3 in enumerate(seq_record[query_block_start:query_block_end]):
-                            add_node_graph(base3, [query_id, target_id], [query_block_start+b3, target_block_start+b3])
-                        print("Added block: ", query_id, " ", query_block_start, "-", query_block_end)
-                        print("Added block: ", target_id, " ", target_block_start, "-", target_block_end)
+                        if target_gap_present is True:
+                            target_gap_end = target_block_end+target_gap_size
+                            for b5, base5 in enumerate(seq_record[target_block_end:target_gap_end]):
+                                add_node_graph(base5, [target_id], [target_block_end+b5])
+                            # print("Added block: ", target_id, " ", target_block_start, "-", target_gap_end)
 
     print(">> Returning block sequence....\n")
     return output_records
@@ -361,30 +348,34 @@ def write_fasta(list_records, filename):
     SeqIO.write(list_records, filename, 'fasta')
 
 
+# TODO VALIDATE
 # Method for adding nodes to the graph; updates graph nodes
 def add_node_graph(given_base, list_transcripts, coordinate):
-
-    base = given_base.upper()
 
     global graph
     global transcript_hash_table
 
+    base = given_base.upper()
+    graph_size = graph.number_of_nodes()
+
     # Checks if this is the first base being added to the graph
     # If this is the first base added to the graph add the node
-    if len(graph.vs()) == 0:
-        graph.add_vertex()
-        graph.vs[len(graph.vs())-1]["Base"] = base
+    if graph_size == 0:
+
+        # Adds empty node to end of graph - grabs teh recently added node
+        graph.add_node(graph.number_of_nodes()+1, Base=base)
+
+        newest_node = graph.node[graph.number_of_nodes()]
+
+        for trans_hash in transcript_hash_table.keys():
+            newest_node[trans_hash] = None
 
         for z, ba in enumerate(list_transcripts):
-            graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
-
-            # Added transcript coordinates to hash table
-            transcript_hash_table[list_transcripts[z]].append(coordinate[z])
+            newest_node[list_transcripts[z]] = coordinate[z]
+            transcript_hash_table[list_transcripts[z]].append(coordinate[z])  # Adds coordinates to hash table
 
     # Creates list of booleans for evaluating if transcript co-ordinates exist in the graph
-    base_exist = []
     base_exist = [False] * len(list_transcripts)
-    # [base_exist.append(False) for t in list_transcripts]
 
     for t, trans in enumerate(list_transcripts):
         list_coords = transcript_hash_table[trans]
@@ -392,47 +383,49 @@ def add_node_graph(given_base, list_transcripts, coordinate):
             base_exist[t] = True
 
     # No transcripts and co-ordinates in there, so add new node - base_exist is still all false
-    # May need to re-arrange the logic in adding new nodes - but think its good here
-    if True not in base_exist:  #
-        # Adding new nodes to graph
-        graph.add_vertex()
-        graph.vs[len(graph.vs())-1]["Base"] = base
+    if True not in base_exist:
+
+        # Adding new nodes to graph - grabs newest node
+        graph.add_node(graph.number_of_nodes()+1, Base=base)
+        newest_node = graph.node[graph.number_of_nodes()]
+
+        for trans_hash2 in transcript_hash_table.keys():
+            newest_node[trans_hash2] = None
 
         for z, ba in enumerate(list_transcripts):
-            graph.vs[len(graph.vs())-1][list_transcripts[z]] = coordinate[z]
+            newest_node[list_transcripts[z]] = coordinate[z]
+            transcript_hash_table[list_transcripts[z]].append(coordinate[z])  # Added coordinates to hash table
 
-            # print("Node does not exist -> Adding ", list_transcripts[z], "at coord", coordinate[z])
 
-            # Added transcript coordinates to hash table
-            transcript_hash_table[list_transcripts[z]].append(coordinate[z])
-
-    # If one of the transcripts returns true then do not add new nodes
-    # Update the existing node with the new transcripts
+    # If one transcript returns true - do not add new nodes - Update the existing node with the new transcripts
     elif True and False in base_exist:
         true_indices = [i for i, x in enumerate(base_exist) if x is True]
         false_indices = [i for i, x in enumerate(base_exist) if x is False]
 
-        # TODO this is quite slow this method here
-        # Updates true index transcripts at nodes with false index coordinates
-        for vertex in graph.vs.select(Base=base):
+        # This seems to work ok, will need to test on larger data set
 
-            for t in true_indices:
+        length_graph = graph.__len__()
 
-                if vertex[list_transcripts[t]] == coordinate[t]:
+        # TODO - Double check where graph is starting, if needs to start at 0 or 1
+        x = 1
 
+        while x != length_graph:
+            # print(graph.node[x])
+
+            for tr in true_indices:
+                if graph.node[x][list_transcripts[tr]] == coordinate[tr]:
                     for j in false_indices:
-                        vertex[list_transcripts[j]] = coordinate[j]
+                        graph[x][list_transcripts[t]] = coordinate[t]
                         transcript_hash_table[list_transcripts[j]].append(coordinate[j])
-                        # print("Update node: ", list_transcripts[t], "-", coordinate[t], " with ", list_transcripts[j], "-", coordinate[j])
-
-    # elif False not in base_exist:
-    #     print("Node already exists: not adding node")
+            break
+            x += 1
 
 
-# TODO - Rewrite method so it does not add edges between nodes that already have node present
+# TODO - VALIDATE
+# TODO - NOT WORKING CORRECTLY
 def add_edge_entire_graph(dict_lengths):
 
-    print(">>> Adding edges...")
+    print(">> Adding edges...")
 
     global graph
 
@@ -445,30 +438,40 @@ def add_edge_entire_graph(dict_lengths):
         length = int(dict_lengths[tran])
         edge_index[tran] = [None] * length
 
-    # Printing insanity checking here - looks like it is making the right size empty lists
+    # Printing insanity checking here - Creating correct size lists
     # print("Insanity checking")
     # for edge in edge_index:
     #     print(edge, len(edge_index[edge]))
 
-    for vertex in graph.vs():
-        for tran in edge_index:
-            if vertex.__getitem__(tran) is not None:
-                edge_index[tran][vertex.__getitem__(tran)] = vertex.index
+    # Visits each node
+    for nod in graph.nodes():
 
-    # for e in edge_index:
-    #     print(e, "\n")
-    #     print(edge_index[e])
+        # Get transcript base locations for each transcript
+        for tran in edge_index:
+
+            # Check if the base is in transcripts
+            if graph.node[nod][tran] is not None:
+
+                # Add node ID to dictionary at index of genomic coordinate
+                # print("Coordinate : ", graph.node[nod][tran], " in ", tran, " located in node : ", nod)
+                edge_index[tran][graph.node[nod][tran]] = nod
 
     for edge in edge_index:
         index_list = edge_index[edge]
         i = len(index_list)
+        # i = 0
+
+        # while i < len(index_list)-1:
+        #     graph.add_edge(index_list[i], index_list[i+1])
+        #     i += 1
 
         while i > 1:
             graph.add_edge(index_list[i-2], index_list[i-1])
-            # print("edge from: ", index_list[i-2], " -> ", index_list[i-1], " in ", edge)
             i -= 1
 
 
+
+# TODO CONVERT TO NETWORKX
 # TODO - Need to optimize this method, it is very slow - not sure how
 # Simplifies the graph by compacting nodes that have only one in degree and one out degree
 def simplify_graph(graph):
@@ -479,10 +482,19 @@ def simplify_graph(graph):
 
         vertex = graph.vs()[i]
 
+        nod = graph.node[i]
+
         # Check if current node has only a single outgoing edge
         if vertex.outdegree() == 1:
             neighbor_id = graph.neighbors(vertex, mode="out")
-            neighbor = graph.vs()[neighbor_id[0]]
+            neighbor = graph.vs()[neighbor_id[0]][0]
+
+        if graph.out_degree(nod) == 1:
+
+            # get neighbour id
+            # get neighbour node
+
+            neighbor = graph.neighbors(nod)
 
             # Checks if the adjacent outgoing edge of current node has only one incoming edge
             if neighbor.indegree() == 1:  # there should on be one value in the list
@@ -574,6 +586,7 @@ if __name__ == "__main__":
     start_time = time.clock()
     main()
     print("Running time: ", time.clock()-start_time, "s")
+
 
 
 

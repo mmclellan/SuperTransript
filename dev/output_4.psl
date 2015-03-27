@@ -1,0 +1,7 @@
+psLayout version 3
+1 	2 	3 	4 	5 	6 	7 	8 	9 	10 			11 	12  	13 	14 			15 	16 	17 	18 	19 		20 		21
+match	mis- 	rep. 	N's	Q gap	Q gap	T gap	T gap	strand	Q        		Q   	Q    	Q  	T        		T   	T    	T  	block	blockSizes 	qStarts	 	tStarts
+     	match	match	   	count	bases	count	bases	      	name     		size	start	end	name     		size	start	end	count
+---------------------------------------------------------------------------------------------------------------------------------------------------------------
+1757	0	0	0	1	336	0	0	+	ENST00000338799.5	3335	1242	3335	ENST00000456483.2	5978	0	1757	2	977,780,	1242,2555,	0,977,
+1757	0	0	0	0	0	1	336	+	ENST00000456483.2	5978	0	1757	ENST00000338799.5	3335	1242	3335	2	978,779,	0,978,		1242,2556,

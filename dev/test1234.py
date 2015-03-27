@@ -1,4 +1,6 @@
-from igraph import *
+__author__ = 'michaelmclellan'
+
+import networkx as nx
 from Bio import SeqIO
 from Bio.Seq import Seq
 from Bio.SeqRecord import SeqRecord
@@ -17,70 +19,77 @@ def main():
     # fasta file for corresponding genes
     fasta_filename = "ESR1_transcripts_for_Michael.fasta"
 
-    print('\nSuper transcript magic algorith!... \n')
+    print('\nSuper transcript magic algorithm!... \n')
     print("\n>> Retrieving transcript IDs...")
     transcripts = get_transcript_ids(fasta_filename)
 
     print("\n>> Constructing empty graph structure and hash table... ")
+    # Global variables ##
     global graph
-    graph = Graph(directed=True)
-
     global transcript_hash_table
+
+    graph = nx.DiGraph()
+
+
+
+
     transcript_hash_table = {}
 
     # Sets graph attributes, so each node has an empty hash table with transcript as key
-    for x in transcripts:
-        graph.vs[x] = ""
-        transcript_hash_table[x] = []
-    graph.vs["Base"] = ""
+    for tran in transcripts:
+        graph.graph[tran] = ''
+        transcript_hash_table[tran] = []
+    graph.graph['Base'] = ''
+
+    print(graph.graph)
 
     # Get the block co-ordinates from BLAT output
-    output = psl_parse('output_2.psl')
-
+    # output = psl_parse('output_5.psl')
+    #
     # Gets the sequence from fasta file. Also adds the nodes to the graph as sequences are retrieved
-    get_sequence(output, "ESR1_transcripts_for_Michael.fasta")
-
+    # get_sequence(output, "ESR1_transcripts_for_Michael.fasta")
+    #
     # Hash table containing the length of transcripts
-    transcript_lengths = {}
-    for out in output:
-        transcript_lengths[out[0]] = out[1]
-    for out in output:
-        transcript_lengths[out[2]] = out[3]
+    # transcript_lengths = {}
+    # for out in output:
+    #     transcript_lengths[out[0]] = out[1]
+    # for out in output:
+    #     transcript_lengths[out[2]] = out[3]
 
-    add_edge_entire_graph(transcript_lengths)
+    # add_edge_entire_graph(transcript_lengths)
 
-    print(graph.summary())
+    # print(graph.summary())
 
-    print(">>> Combinging edges...")
-    graph.simplify()
+    # print(">>> Combinging edges...")
+    # graph.simplify()
 
-    print(graph.summary())
+    # print(graph.summary())
 
     # Simplify graph conactenating nodes that do not fork
-    simplify_graph(graph)
+    # simplify_graph(graph)
 
     # Writing out each node sequence for blatting
     # write_vertex_to_fasta(graph)
 
     # Reconstruct transcripts
-    reconstruct_transcript_sequence(graph, transcripts)
+    # reconstruct_transcript_sequence(graph, transcripts)
 
     # Sorts graph using khan algorithm
-    sorted = khan_sort(graph)
+    # sorted = khan_sort(graph)
 
-    print(">>> Writing supertranscript to fasta file...")
-    sorted_sequence = Seq(sorted)
-    sorted_seq_rec = SeqRecord(sorted_sequence)
-    sorted_seq_rec.id = "SORT00000000000.1"
-    SeqIO.write(sorted_seq_rec, "ESR1_sorted_singlefunction.fasta", 'fasta')
+    # print(">>> Writing supertranscript to fasta file...")
+    # sorted_sequence = Seq(sorted)
+    # sorted_seq_rec = SeqRecord(sorted_sequence)
+    # sorted_seq_rec.id = "SORT00000000000.1"
+    # SeqIO.write(sorted_seq_rec, "ESR1_sorted_singlefunction.fasta", 'fasta')
 
     # Write graph information to text file for checking
-    f = open('graph_output.txt', 'w')
-    for vertex in graph.vs():
-        f.write(str(vertex))
-        f.write("\n")
-    f.write("\n")
-    f.close()
+    # f = open('graph_output.txt', 'w')
+    # for vertex in graph.vs():
+    #     f.write(str(vertex))
+    #     f.write("\n")
+    # f.write("\n")
+    # f.close()
 
     # print(">>> Drawing graph... ")
     # graph.write_svg("graph.svg", layout="kk")
@@ -360,7 +369,7 @@ def get_sequence(blat_blocks, fasta_file):
 def write_fasta(list_records, filename):
     SeqIO.write(list_records, filename, 'fasta')
 
-
+# TODO CONVERT TO NETWORKX
 # Method for adding nodes to the graph; updates graph nodes
 def add_node_graph(given_base, list_transcripts, coordinate):
 
@@ -430,6 +439,7 @@ def add_node_graph(given_base, list_transcripts, coordinate):
 
 
 # TODO - Rewrite method so it does not add edges between nodes that already have node present
+# TODO - CONVERT TO NETWORKX
 def add_edge_entire_graph(dict_lengths):
 
     print(">>> Adding edges...")
@@ -469,6 +479,7 @@ def add_edge_entire_graph(dict_lengths):
             i -= 1
 
 
+# TODO CONVERT TO NETWORKX
 # TODO - Need to optimize this method, it is very slow - not sure how
 # Simplifies the graph by compacting nodes that have only one in degree and one out degree
 def simplify_graph(graph):
@@ -574,6 +585,7 @@ if __name__ == "__main__":
     start_time = time.clock()
     main()
     print("Running time: ", time.clock()-start_time, "s")
+
 
 
 
